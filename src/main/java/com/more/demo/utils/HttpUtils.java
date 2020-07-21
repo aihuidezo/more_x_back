@@ -14,8 +14,10 @@ import java.net.URISyntaxException;
 import java.util.Map;
 
 public class HttpUtils {
-    public static String getResponse(String url, Map<String,String> params){
+    public static String getResponse(String url, Map<String,String> params) throws IOException {
         CloseableHttpClient httpClient= HttpClients.createDefault();
+        CloseableHttpResponse response=null;
+        String result="";
         try{
             URIBuilder builder=new URIBuilder(url);
             if(params!=null){
@@ -25,19 +27,21 @@ public class HttpUtils {
             }
             URI uri=builder.build();
             HttpGet httpGet=new HttpGet(uri);
-            CloseableHttpResponse response=httpClient.execute(httpGet);//接受get请求的response
+            response=httpClient.execute(httpGet);//接受get请求的response
             if (response.getStatusLine().getStatusCode()==200){
-                return EntityUtils.toString(response.getEntity());//将返回的对象转换成字符串
+                result= EntityUtils.toString(response.getEntity());//将返回的对象转换成字符串
             }
 
-        }catch (URISyntaxException e) {
-            e.printStackTrace();
         } catch (ClientProtocolException e) {
             e.printStackTrace();
-        } catch (IOException e) {
+        } catch (URISyntaxException | IOException e) {
             e.printStackTrace();
-        }finally {
-            return "";
+        } finally {
+            if(response!=null){
+                response.close();
+            }
+            httpClient.close();
+            return result;
         }
     }
 }
